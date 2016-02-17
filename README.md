@@ -8,6 +8,7 @@ mark is a little fish-shell script to mark days and get statistics about your ma
 + cal
 + date
 + cat
++ sed
 
 ## Usage
 
