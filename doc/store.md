@@ -51,6 +51,12 @@ should not happen.
 Every line of the color block is one pair of sign and color separated
 only by a colon.
 
+Example:
+```
+m:red
+s:yellow
+```
+
 ## Location
 
 The path to the store file is stored in the environment variable `$__mark_store`.
