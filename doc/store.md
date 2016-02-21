@@ -41,6 +41,8 @@ This is followed by 12 lines starting with their number [1-12], a colon and
 (28-31) characters representing the (marked) days.
 Every other character then '?' is interpreted as a mark. 
 
+Year subblocks should be ordered newest first.
+
 #### colors content
 
 Every line of the color block is one pair of sign and color separated
