@@ -282,13 +282,13 @@ function __mark_set --description 'mark a day in a store'
     # correct year sub-block
     set is_year false
     for l in $marks
-        if begin test $is_year= false
+        if begin test $is_year = false
                  and string match -q -r "^$year:\$" $l
                  end
             set year_found true
         end
 
-        if test $is_year= true
+        if test $is_year = true
             if test $m -ne $month
                 echo $l >> $mark_store.new
             else
@@ -311,4 +311,34 @@ function __mark_set --description 'mark a day in a store'
     string split " " (string replace -r "#store#[^#]*" "" $store_and_rest) >> $mark_store.new
 
     mv $mark_store.new $mark_store
+end
+
+function mark
+    for i in (seq 2 (count $argv))
+        if string match -q -- "-d=*" "$argv[$i]"
+            set day (string replace -- "-d=" "" $argv[$i])
+        else if string match -q -- "-m=*" "$argv[$i]"
+            set month (string replace -- "-m=" "" $argv[$i])
+        else if string match -q -- "-y=*" "$argv[$i]"
+            set year (string replace -- "-y=" "" $argv[$i])
+        else if string match -q -- "-s=*" "$argv[$i]"
+            set mark_store (string replace -- "-s=" "" "$argv[$i]")
+        else if string match -q -- "-z=*" "$argv[$i]"
+            set sign (string replace -- "-z=" "" "$argv[$i]")
+        else if string match -q -- "-r=*" "$argv[$i]"
+            set range (string replace -- "-r=" ""  "$argv[$i]")
+        else 
+            echo unrecognised option: $argv[$i] >&2
+            return 1
+        end
+    end
+
+    switch $argv[1]
+        case "set" "s"
+            __mark_set $argv[2..-1]
+        case "get" "g"
+            __mark_get $argv[2..-1]
+        case "month" "m"
+            __mark_print_month $argv[2..-1]
+    end
 end
