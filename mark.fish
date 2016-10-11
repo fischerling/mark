@@ -14,7 +14,7 @@ function __mark_get --description 'extract information from a mark_store'
     set range 0
 
     # parse argv
-    for i in (seq 1 (count $argv))
+    for i in (seq 2 (count $argv))
         if string match -q -- "-y=*" "$argv[$i]"
             set year (string replace -- "-y=" "" $argv[$i])
         else if string match -q -- "-m=*" "$argv[$i]"
@@ -170,7 +170,7 @@ function __mark_print_month --description "print overview over a month"
     set year (date "+%Y")
 
     # parse argv
-    for i in (seq 1 (count $argv))
+    for i in (seq 2 (count $argv))
         if string match -q -- "-y=*" "$argv[$i]"
             set year (string replace -- "-y=" "" $argv[$i])
         else if string match -q -- "-m=*" "$argv[$i]"
@@ -247,7 +247,7 @@ function __mark_set --description 'mark a day in a store'
     set year (date +"%Y")
 
     # parse argv
-    for i in (seq 1 (count $argv))
+    for i in (seq 2 (count $rgv))
         if string match -q -- "-d=*" "$argv[$i]"
             set day (string replace -- "-d=" "" $argv[$i])
         else if string match -q -- "-m=*" "$argv[$i]"
@@ -335,10 +335,10 @@ function mark
 
     switch $argv[1]
         case "set" "s"
-            __mark_set $argv[2..-1]
+            __mark_set $argv[1..-1]
         case "get" "g"
-            __mark_get $argv[2..-1]
+            __mark_get $argv[1..-1]
         case "month" "m"
-            __mark_print_month $argv[2..-1]
+            __mark_print_month $argv[1..-1]
     end
 end
