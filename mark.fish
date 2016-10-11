@@ -4,38 +4,10 @@ function __mark_print_block -d "prints block from mark_store" -a block file
     echo (string trim $c)
 end
 
-function __mark_get --description 'extract information from a mark_store'
-    # defaults
-    set mark_store $__mark_store
-    set year (date "+%Y")
-    set month (math (date "+%m") "*1")
-    set day (math (date "+%d") "*1")
-    # range of marks retunrned around date
-    set range 0
+function __mark_get --description 'extract information from a mark_store' \
+                    -a store year month day range
 
-    # parse argv
-    for i in (seq 2 (count $argv))
-        if string match -q -- "-y=*" "$argv[$i]"
-            set year (string replace -- "-y=" "" $argv[$i])
-        else if string match -q -- "-m=*" "$argv[$i]"
-            set month (string replace -- "-m=" "" $argv[$i])
-        else if string match -q -- "-d=*" "$argv[$i]"
-            set day (string replace -- "-d=" "" $argv[$i])
-        else if string match -q -- "-s=*" "$argv[$i]"
-            set mark_store (string replace -- "-s=" "" "$argv[$i]")
-        else if string match -q -- "-r=*" "$argv[$i]"
-            set range (string replace -- "-r=" "" "$argv[$i]")
-        else
-            echo unrecognised option:  $argv[$i] >&2
-            return 1
-        end
-    end
-
-    if not test -f $mark_store
-        return 1
-    end
-
-    set marks (__mark_print_block store $mark_store)
+    set marks (__mark_print_block store $store)
     set marks (string split " " $marks)
 
     # find year in marks
@@ -160,40 +132,16 @@ function __mark_new_store --description "generates new mark store for one year"
     echo "#end#"
 end
 
-function __mark_print_month --description "print overview over a month"
-
-    # defaults
-    # use current year and month
-    set mark_store $__mark_store
-    # convert "0m" to "m" if m < 10
-    set month (math (date "+%m") "*1")
-    set year (date "+%Y")
-
-    # parse argv
-    for i in (seq 2 (count $argv))
-        if string match -q -- "-y=*" "$argv[$i]"
-            set year (string replace -- "-y=" "" $argv[$i])
-        else if string match -q -- "-m=*" "$argv[$i]"
-            set month (string replace -- "-m=" "" $argv[$i])
-        else if string match -q -- "-s=*" "$argv[$i]"
-            set mark_store (string replace -- "-s=" "" "$argv[$i]")
-        else
-            echo unrecognised option: $argv[$i] >&2
-            return 1
-        end
-    end
-
-    if not test -f $mark_store
-        return 1
-    end
+function __mark_print_month --description "print overview over a month" \
+                            -a store year month
 
     # get marks
-    set marks (string split " " (__mark_print_block "store" $mark_store))
+    set marks (string split " " (__mark_print_block "store" $store))
     set marks (string split ":" $marks[(math $month + 1)])[2]
     set marks (string split "" $marks)
 
     # get colors
-    set colors (__mark_print_block "colors" $mark_store)
+    set colors (__mark_print_block "colors" $store)
 
     # get formatted representation for month
     set month (cal $month $year)
@@ -238,44 +186,17 @@ function __mark_print_month --description "print overview over a month"
     end
 end
 
-function __mark_set --description 'mark a day in a store'
-    # defaults
-    set mark_store $__mark_store
-    set sign "*"
-    set day (math (date +"%d") "*1")
-    set month (math (date +"%m") "*1")
-    set year (date +"%Y")
-
-    # parse argv
-    for i in (seq 2 (count $rgv))
-        if string match -q -- "-d=*" "$argv[$i]"
-            set day (string replace -- "-d=" "" $argv[$i])
-        else if string match -q -- "-m=*" "$argv[$i]"
-            set month (string replace -- "-m=" "" $argv[$i])
-        else if string match -q -- "-y=*" "$argv[$i]"
-            set year (string replace -- "-y=" "" $argv[$i])
-        else if string match -q -- "-s=*" "$argv[$i]"
-            set mark_store (string replace -- "-s=" "" "$argv[$i]")
-        else if string match -q -- "-z=*" "$argv[$i]"
-            set sign (string replace -- "-z=" "" "$argv[$i]")
-        else
-            echo unrecognised option: $argv[$i] >&2
-            return 1
-        end
-    end
-
-    if not test -f $mark_store
-        return 1
-    end
+function __mark_set --description 'mark a day in a store' \
+                    -a store year month day sign
 
     # calculate offset: $day+1 (+1 if m > 9) because of "<month>:"
     set offset (math "($day + 1 + $month/10)") 
 
-    set marks (__mark_print_block store $mark_store)
+    set marks (__mark_print_block store $store)
     set marks (string split " " $marks)
 
     # copy everything before #store#
-    string split " " (string match -r "^.*#store#" (echo (cat $mark_store))) > $mark_store.new
+    string split " " (string match -r "^.*#store#" (echo (cat $store))) > $store.new
 
     # crawl store
     set m 0
@@ -285,15 +206,15 @@ function __mark_set --description 'mark a day in a store'
         if begin test $is_year = false
                  and string match -q -r "^$year:\$" $l
                  end
-            set year_found true
+            set is_year true
         end
 
         if test $is_year = true
             if test $m -ne $month
-                echo $l >> $mark_store.new
+                echo $l >> $store.new
             else
                 # replace the char at offset with $sign
-                echo $l | sed "s/^\(.\{$offset\}\)?/\1$sign/" >> $mark_store.new
+                echo $l | sed "s/^\(.\{$offset\}\)?/\1$sign/" >> $store.new
             end
 
             set m (math "$m+1")
@@ -302,18 +223,28 @@ function __mark_set --description 'mark a day in a store'
                 set is_year false
             end
         else
-            echo $l >> $mark_store.new
+            echo $l >> $store.new
         end
     end
     
     #copy everything after #store#
-    set store_and_rest (string match -r "#store#.*\$" (echo (cat $mark_store)))
-    string split " " (string replace -r "#store#[^#]*" "" $store_and_rest) >> $mark_store.new
+    set store_and_rest (string match -r "#store#.*\$" (echo (cat $store)))
+    string split " " (string replace -r "#store#[^#]*" "" $store_and_rest) >> $store.new
 
-    mv $mark_store.new $mark_store
+    mv $store.new $store
 end
 
 function mark
+    # defaults
+    set store $__mark_store
+    set year (date "+%Y")
+    set month (math (date "+%m") "*1")
+    set day (math (date "+%d") "*1")
+    # range of marks returned around date
+    set range 0
+    # sign to write to the store
+    set sign !
+
     for i in (seq 2 (count $argv))
         if string match -q -- "-d=*" "$argv[$i]"
             set day (string replace -- "-d=" "" $argv[$i])
@@ -322,7 +253,7 @@ function mark
         else if string match -q -- "-y=*" "$argv[$i]"
             set year (string replace -- "-y=" "" $argv[$i])
         else if string match -q -- "-s=*" "$argv[$i]"
-            set mark_store (string replace -- "-s=" "" "$argv[$i]")
+            set store (string replace -- "-s=" "" "$argv[$i]")
         else if string match -q -- "-z=*" "$argv[$i]"
             set sign (string replace -- "-z=" "" "$argv[$i]")
         else if string match -q -- "-r=*" "$argv[$i]"
@@ -333,12 +264,17 @@ function mark
         end
     end
 
+    if not test -f $store
+        echo "store is not a file" >&2
+        return 1
+    end
+
     switch $argv[1]
         case "set" "s"
-            __mark_set $argv[1..-1]
+            __mark_set $store $year $month $day $sign
         case "get" "g"
-            __mark_get $argv[1..-1]
+            __mark_get $store $year $month $day $range
         case "month" "m"
-            __mark_print_month $argv[1..-1]
+            __mark_print_month $store $year $month
     end
 end
