@@ -61,9 +61,9 @@ function __mark_get --description 'extract information from a mark_store' \
             set start_d (string split "-" (date -d @$start_s +%Y-%m-%d))
 
             set year_diff (math $year - $start_d[1])
-            set first_year_offset (math "$year_offset + 12*$year_diff")
+            set first_year_offset (math "$year_offset - 13*$year_diff")
 
-            if test $first_year_offset -gt (count marks)
+            if test $first_year_offset -le 0
                 echo range is to big for available data! >&2
                 return 1
             end
@@ -72,30 +72,26 @@ function __mark_get --description 'extract information from a mark_store' \
             # $s = oldest month to add
             set s $start_d[2]
             set e 12
-            for y in (seq $first_year_offset -12 $year_offset)
+            for y in (seq $first_year_offset +13 $year_offset)
                 # set e if last year is reached
                 if test $y -eq $year_offset
                     set e $month
                 end
                 for i in (seq $s $e)
-                    set range_marks $range_marks (string split ":" $marks[(math $y + $i)])[2]
+                    set line_marks (string split ":" $marks[(math $y + $i)])[2]
+                    # ignore empty lines (years <yyyy>:\n)
+                    if not test "" = $line_marks
+                        set range_marks $range_marks $line_marks
+                    end
                 end
                 # reset s -> start with january
                 set s 0
             end
 
-            set marks (string split "" $range_marks[1])
+            set marks (string split "" $range_marks)
 
-            if test (count $range_marks) -gt 1
-                set marks $marks[$start_d[3]..-1]
-                for i in (seq 2 (math (count $range_marks) - 1))
-                    set marks $marks (string split "" $range_marks[$i])
-                end
-                set tmp_marks (string split "" $range_marks[-1])
-                set marks $marks $tmp_marks[1..$day]
-            else
-                set marks $marks[$start_d[3]..$day]
-            end
+            set marks $marks[$start_d[3]..(math $start_d[3] + $range)]
+
             echo (string join "" $marks)
         else
             set marks (string split "" (string split ":" $marks[(math $month+$year_offset)])[2])
