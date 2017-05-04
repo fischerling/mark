@@ -183,7 +183,7 @@ function __mark_print_month --description "print overview over a month" \
 end
 
 function __mark_set --description 'mark a day in a store' \
-                    -a store year month day sign
+                    -a store year month day sign force
 
     # calculate offset: $day+1 (+1 if m > 9) because of "<month>:"
     set offset (math "($day + 1 + $month/10)") 
@@ -210,7 +210,11 @@ function __mark_set --description 'mark a day in a store' \
                 echo $l >> $store.new
             else
                 # replace the char at offset with $sign
-                echo $l | sed "s/^\(.\{$offset\}\)?/\1$sign/" >> $store.new
+                if test $force = true
+                    echo $l | sed "s/^\(.\{$offset\}\)./\1$sign/" >> $store.new
+                else
+                    echo $l | sed "s/^\(.\{$offset\}\)?/\1$sign/" >> $store.new
+                end
             end
 
             set m (math "$m+1")
@@ -240,6 +244,7 @@ function mark
     set range 0
     # sign to write to the store
     set sign !
+    set force false
 
     for i in (seq 2 (count $argv))
         if string match -q -- "-d=*" "$argv[$i]"
@@ -254,6 +259,8 @@ function mark
             set sign (string replace -- "-z=" "" "$argv[$i]")
         else if string match -q -- "-r=*" "$argv[$i]"
             set range (string replace -- "-r=" ""  "$argv[$i]")
+        else if string match -q -- "-f" "$argv[$i]"
+            set force true
         else 
             echo unrecognised option: $argv[$i] >&2
             return 1
@@ -267,7 +274,7 @@ function mark
 
     switch $argv[1]
         case "set" "s"
-            __mark_set $store $year $month $day $sign
+            __mark_set $store $year $month $day $sign $force
         case "get" "g"
             __mark_get $store $year $month $day $range
         case "month" "m"
