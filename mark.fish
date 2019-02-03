@@ -1,3 +1,6 @@
+# Copyright (c) 2017-2019 Florian Fischer. All rights reserved.
+# Use of this source code is governed by a MIT license found in the LICENSE file.
+
 function __mark_print_block -d "prints block from mark_store" -a block file
     set c (string match -r "#$block#[^#]*" (echo (cat $file)))
     set c (string replace "#$block#" "" $c)
@@ -90,7 +93,7 @@ function __mark_get --description 'extract information from a mark_store' \
 
             set marks (string split "" $range_marks)
 
-            set marks $marks[$start_d[3]..(math $start_d[3] + $range)]
+            set marks $marks[(math $start_d[3])..(math $start_d[3] + $range)]
 
             echo (string join "" $marks)
         else
