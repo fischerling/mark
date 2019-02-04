@@ -189,7 +189,7 @@ function __mark_set --description 'mark a day in a store' \
                     -a store year month day sign force
 
     # calculate offset: $day+1 (+1 if m > 9) because of "<month>:"
-    set offset (math "floor($day + 1 + $month/10)") 
+    set offset (math -s0 "$day + 1 + $month/10") 
 
     set marks (__mark_print_block store $store)
     set marks (string split " " $marks)
