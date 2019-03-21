@@ -1,18 +1,18 @@
 # mark
 
-mark is a little fish-shell script to mark days and get statistics about your marks.
+`mark` is a little fish-shell utility to mark days in a simple plaintext format.
 
 ## Requirements
 
 + fish-shell
-+ cal
-+ date
-+ cat
-+ sed
++ coreutils
 
 ## Usage
 
-At the current state you have to use all mark functions on there own.
+	No cmd specified
+	Usage:	mark [cmd | <mark>] date [cmd args]
+	Cmds:
+		print [before] [after]: print marks in range [date-before, date-after]
 
 ## License
 
