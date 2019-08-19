@@ -133,6 +133,18 @@ function mark --argument cmd date
 	switch "$cmd"
 		case "print"
 			mark_print_dates $date $argv[3] $argv[4]
+		case "edit" "e"
+			set store (mark_find_store)
+			if test ! -z "$VISUAL"
+				eval $VISUAL $store
+			else if test ! -z "EDITOR"
+				eval $EDITOR $store
+			else if type -q "xdg-open"
+				xdg-open $store
+			else
+				echo "Don't know how to open marks."
+				echo "Please set VISUAL or EDITOR in your environment."
+			end
 		case "*"
 			set store (mark_find_store)
 
