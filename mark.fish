@@ -118,6 +118,7 @@ function mark --argument cmd date
 		echo "Usage:	mark [cmd | <mark>] date [cmd args]"
 		echo "Cmds:"
 		echo "	print [before] [after]: print marks in range [date-before, date-after]"
+		echo "	edit: open the mark store file in an editor or using xdg-open"
 		return 1
 	end
 

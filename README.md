@@ -13,6 +13,7 @@
 	Usage:	mark [cmd | <mark>] date [cmd args]
 	Cmds:
 		print [before] [after]: print marks in range [date-before, date-after]
+		edit: open the mark store file in an editor or using xdg-open
 
 ## License
 
