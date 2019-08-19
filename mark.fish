@@ -1,7 +1,7 @@
 # Copyright (c) 2017-2019 Florian Fischer. All rights reserved.
 # Use of this source code is governed by a MIT license found in the LICENSE file.
 
-function mark_find_store --argument store
+function __mark_find_store --argument store
 	if test -n "$store" -a -f "$store"
 		echo $store
 		return
@@ -35,11 +35,11 @@ function mark_find_store --argument store
 
 	echo "Creating new mark file at $xdg_data_home/mark/marks" >&2
 	mkdir -p $xdg_data_home/mark
-	mark_new_year_block (date +%Y) > $xdg_data_home/mark/marks
+	__mark_new_year_block (date +%Y) > $xdg_data_home/mark/marks
 	echo $xdg_data_home/mark/marks
 end
 
-function mark_new_year_block --argument year
+function __mark_new_year_block --argument year
 	echo "$year":
 	echo "01: ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ?"
 	echo "02: ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ?"
@@ -55,57 +55,57 @@ function mark_new_year_block --argument year
 	echo "12: ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ?"
 end
 
-function mark_years_in_store
-	grep -o "....:" (mark_find_store) | sed "s/.//5"
+function __mark_years_in_store
+	grep -o "....:" (__mark_find_store) | sed "s/.//5"
 end
 
-function mark_print_year --argument year
-	grep --color=never -A12 $year (mark_find_store)
+function __mark_print_year --argument year
+	grep --color=never -A12 $year (__mark_find_store)
 end
 
-function mark_print_month --argument year month
-	mark_print_year $year | sed -n (math $month +1)"p"
+function __mark_print_month --argument year month
+	__mark_print_year $year | sed -n (math $month +1)"p"
 end
 
-function mark_print_date --argument date
+function __mark_print_date --argument date
 	set date (string split "-" $date)
-	mark_print_month $date[1] $date[2] | cut -d' ' -f(math $date[3] + 1)
+	__mark_print_month $date[1] $date[2] | cut -d' ' -f(math $date[3] + 1)
 end
 
-function mark_print_dates --argument date before after
+function __mark_print_dates --argument date before after
 	if test -n "$before" -a "$before" -gt 0
 		for b in (seq 1 $before | tac)
 			set cur_date (date -I -d "$date - $b days")
-			mark_print_date $cur_date
+			__mark_print_date $cur_date
 		end
 	end
 
-	mark_print_date $date
+	__mark_print_date $date
 
 	if test -n "$after" -a "$after" -gt 0
 		for a in (seq 1 $after)
 			set cur_date (date -I -d "$date + $a days")
-			mark_print_date $cur_date
+			__mark_print_date $cur_date
 		end
 	end
 end
 
-function mark_append_mark --argument mark date
+function __mark_append_mark --argument mark date
 	set date_a (string split "-" $date)
 	set year $date_a[1]
 	set month $date_a[2]
 	set day $date_a[3]
 
-	for y in (mark_years_in_store)
+	for y in (__mark_years_in_store)
 		if test "$y" != $year
-			mark_print_year $y
+			__mark_print_year $y
 		else
 			# set first mark
-			if test (mark_print_date $date) = "?"
-				mark_print_year $year | sed (math $month + 1)"s/ [^[:space:]]*/ $mark/"$day
+			if test (__mark_print_date $date) = "?"
+				__mark_print_year $year | sed (math $month + 1)"s/ [^[:space:]]*/ $mark/"$day
 			# append to marks
 			else
-				mark_print_year $year | sed (math $month + 1)"s/ [^[:space:]]*/&$mark/"$day
+				__mark_print_year $year | sed (math $month + 1)"s/ [^[:space:]]*/&$mark/"$day
 			end
 		end
 		echo
@@ -133,9 +133,9 @@ function mark --argument cmd date
 
 	switch "$cmd"
 		case "print"
-			mark_print_dates $date $argv[3] $argv[4]
+			__mark_print_dates $date $argv[3] $argv[4]
 		case "edit" "e"
-			set store (mark_find_store)
+			set store (__mark_find_store)
 			if test ! -z "$VISUAL"
 				eval $VISUAL $store
 			else if test ! -z "EDITOR"
@@ -147,7 +147,7 @@ function mark --argument cmd date
 				echo "Please set VISUAL or EDITOR in your environment."
 			end
 		case "*"
-			set store (mark_find_store)
+			set store (__mark_find_store)
 
 			cp $store $store.bak
 
