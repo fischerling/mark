@@ -151,7 +151,7 @@ function mark --argument cmd date
 
 			cp $store $store.bak
 
-			mark_append_mark $cmd $date > $store.new
+			__mark_append_mark $cmd $date > $store.new
 
 			mv $store.new $store
 	end
