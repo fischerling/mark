@@ -139,7 +139,7 @@ function mark --argument cmd date
 
 	if test -n "$argv[2]"
 		if not date -d "$argv[2]" > /dev/null 2>&1
-			echo $argv[2] " is not a valid date" >&2
+			echo $argv[2] "is not a valid date" >&2
 		end
 		set date "$argv[2]"
 	else
