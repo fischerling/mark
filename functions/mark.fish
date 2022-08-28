@@ -112,11 +112,22 @@ function __mark_append_mark --argument mark date
 	end
 end
 
+function __mark_count --argument mark
+	if test -z "$mark"
+		echo "No mark to count" >&2
+		return 1
+	end
+
+	grep -v '[1-9][0-9][0-9][0-9]:' (__mark_find_store) | sed -r 's/^.{3}//' | grep -o $mark | wc -l
+	return 0
+end
+
 function __mark_print_usage
 	echo "Usage:	mark [cmd | <mark>] date [cmd args]"
 	echo "Cmds:"
 	echo "	print [before] [after]: print marks in range [date-before, date-after]"
 	echo "	edit: open the mark store file in an editor or using xdg-open"
+	echo "	count <mark>: count the occurrences of <mark> in the mark store"
 end
 
 function mark --argument cmd date
@@ -140,6 +151,8 @@ function mark --argument cmd date
 			__mark_print_dates $date $argv[3] $argv[4]
 		case "--help" "-h"
 			__mark_print_usage
+		case "count"
+			__mark_count $argv[2]
 		case "edit" "e"
 			set store (__mark_find_store)
 			if test ! -z "$VISUAL"
@@ -161,4 +174,5 @@ function mark --argument cmd date
 
 			mv $store.new $store
 	end
+	return $status
 end
