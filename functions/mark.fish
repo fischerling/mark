@@ -122,6 +122,23 @@ function __mark_count --argument mark
 	return 0
 end
 
+function __mark_edit
+	set store (__mark_find_store)
+	if test ! -z "$VISUAL"
+		eval $VISUAL $store
+	else if test ! -z "EDITOR"
+		eval $EDITOR $store
+	else if type -q "xdg-open"
+		xdg-open $store
+	else
+		echo "Don't know how to open marks." >&2
+		echo "Please set VISUAL or EDITOR in your environment." >&2
+		return 1
+	end
+
+	return $status
+end
+
 function __mark_print_usage
 	echo "Usage:	mark [cmd | <mark>] date [cmd args]"
 	echo "Cmds:"
@@ -154,17 +171,7 @@ function mark --argument cmd date
 		case "count"
 			__mark_count $argv[2]
 		case "edit" "e"
-			set store (__mark_find_store)
-			if test ! -z "$VISUAL"
-				eval $VISUAL $store
-			else if test ! -z "EDITOR"
-				eval $EDITOR $store
-			else if type -q "xdg-open"
-				xdg-open $store
-			else
-				echo "Don't know how to open marks."
-				echo "Please set VISUAL or EDITOR in your environment."
-			end
+			__mark_edit
 		case "*"
 			set store (__mark_find_store)
 
