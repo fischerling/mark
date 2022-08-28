@@ -112,13 +112,17 @@ function __mark_append_mark --argument mark date
 	end
 end
 
+function __mark_print_usage
+	echo "Usage:	mark [cmd | <mark>] date [cmd args]"
+	echo "Cmds:"
+	echo "	print [before] [after]: print marks in range [date-before, date-after]"
+	echo "	edit: open the mark store file in an editor or using xdg-open"
+end
+
 function mark --argument cmd date
 	if test -z "$cmd"
 		echo "No cmd specified"
-		echo "Usage:	mark [cmd | <mark>] date [cmd args]"
-		echo "Cmds:"
-		echo "	print [before] [after]: print marks in range [date-before, date-after]"
-		echo "	edit: open the mark store file in an editor or using xdg-open"
+		__mark_print_usage
 		return 1
 	end
 
@@ -134,6 +138,8 @@ function mark --argument cmd date
 	switch "$cmd"
 		case "print"
 			__mark_print_dates $date $argv[3] $argv[4]
+		case "--help" "-h"
+			__mark_print_usage
 		case "edit" "e"
 			set store (__mark_find_store)
 			if test ! -z "$VISUAL"
