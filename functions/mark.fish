@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Florian Fischer. All rights reserved.
+# Copyright (c) 2017-2022 Florian Fischer. All rights reserved.
 # Use of this source code is governed by a MIT license found in the LICENSE file.
 
 function __mark_find_store --argument store
@@ -39,6 +39,18 @@ function __mark_find_store --argument store
 	echo $xdg_data_home/mark/marks
 end
 
+function __mark_parse_date --argument date
+	if test -n "$date"
+		if not date -d "$date" > /dev/null 2>&1
+			echo "$date is not a valid date" >&2
+			return 1
+		end
+		echo (date -I -d $date)
+	else
+		echo (date -I)
+	end
+end
+
 function __mark_new_year_block --argument year
 	echo "$year":
 	echo "01: ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ?"
@@ -73,6 +85,10 @@ function __mark_print_date --argument date
 end
 
 function __mark_print_dates --argument date before after
+	if not set date (__mark_parse_date $date)
+		return 1
+	end
+
 	if test -n "$before" -a "$before" -gt 0
 		for b in (seq 1 $before | tac)
 			set cur_date (date -I -d "$date - $b days")
@@ -147,25 +163,16 @@ function __mark_print_usage
 	echo "	count <mark>: count the occurrences of <mark> in the mark store"
 end
 
-function mark --argument cmd date
+function mark --argument cmd
 	if test -z "$cmd"
 		echo "No cmd specified"
 		__mark_print_usage
 		return 1
 	end
 
-	if test -n "$argv[2]"
-		if not date -d "$argv[2]" > /dev/null 2>&1
-			echo $argv[2] "is not a valid date" >&2
-		end
-		set date "$argv[2]"
-	else
-		set date (date -I)
-	end
-
 	switch "$cmd"
 		case "print"
-			__mark_print_dates $date $argv[3] $argv[4]
+			__mark_print_dates $argv[2] $argv[3] $argv[4]
 		case "--help" "-h"
 			__mark_print_usage
 		case "count"
@@ -174,6 +181,9 @@ function mark --argument cmd date
 			__mark_edit
 		case "*"
 			set store (__mark_find_store)
+			if not set date (__mark_parse_date $argv[2])
+				return 1
+			end
 
 			cp $store $store.bak
 
