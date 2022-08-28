@@ -128,13 +128,13 @@ function __mark_append_mark --argument mark date
 	end
 end
 
-function __mark_count --argument mark
-	if test -z "$mark"
-		echo "No mark to count" >&2
+function __mark_count --argument pattern
+	if test -z "$pattern"
+		echo "No countable pattern provided" >&2
 		return 1
 	end
 
-	grep -v '[1-9][0-9][0-9][0-9]:' (__mark_find_store) | sed -r 's/^.{3}//' | grep -o $mark | wc -l
+	grep -v '[1-9][0-9][0-9][0-9]:' (__mark_find_store) | sed -r 's/^.{3}//' | grep -Eo $pattern | wc -l
 	return 0
 end
 
@@ -160,7 +160,7 @@ function __mark_print_usage
 	echo "Cmds:"
 	echo "	print [before] [after]: print marks in range [date-before, date-after]"
 	echo "	edit: open the mark store file in an editor or using xdg-open"
-	echo "	count <mark>: count the occurrences of <mark> in the mark store"
+	echo "	count <pattern>: count the occurrences of <pattern> in the mark store"
 end
 
 function mark --argument cmd
